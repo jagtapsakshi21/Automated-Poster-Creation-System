@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PosterCraft – Automated Poster Generator</title>
+  <meta name="description" content="Create stunning posters instantly with PosterCraft – your advanced automated poster generator with PDF export, shape controls & more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;700;900&family=Poppins:wght@300;400;600;700;800&family=Raleway:wght@300;400;600;700;800&family=Montserrat:wght@300;400;600;700;800;900&family=Space+Mono:wght@400;700&family=Cormorant+Garamond:wght@300;400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="app-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-text">Poster<span class="logo-accent">Craft</span></span>
+    </div>
+    <nav class="header-nav">
+      <button class="nav-btn active" data-tab="create" onclick="switchTab('create')">✏️ Create</button>
+      <button class="nav-btn" data-tab="gallery" onclick="switchTab('gallery')">🖼️ Gallery</button>
+      <button class="nav-btn" data-tab="templates" onclick="switchTab('templates')">📐 Templates</button>
+    </nav>
+    <div class="header-actions">
+      <button class="btn-undo" onclick="undoHistory()" title="Undo">↩</button>
+      <button class="btn-undo" onclick="redoHistory()" title="Redo">↪</button>
+      <button class="btn-header-download" onclick="openDownloadMenu()">⬇ Export</button>
+      <div class="download-menu" id="downloadMenu" style="display:none">
+        <button onclick="downloadPoster('png'); closeDownloadMenu()">🖼 PNG Image</button>
+        <button onclick="downloadPoster('jpg'); closeDownloadMenu()">📷 JPG Image</button>
+        <button onclick="downloadAsPDF(); closeDownloadMenu()">📄 PDF Document</button>
+        <button onclick="copyPosterToClipboard(); closeDownloadMenu()">📋 Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== MAIN APP ===== -->
+<main class="app-main">
+
+  <!-- ======== CREATE TAB ======== -->
+  <section id="tab-create" class="tab-section active">
+    <div class="workspace">
+
+      <!-- LEFT PANEL -->
+      <aside class="control-panel" id="controlPanel">
+        <div class="panel-scroll">
+
+          <!-- STEP 1: POSTER TYPE -->
+          <div class="panel-section">
+            <div class="section-header">
+              <span class="step-badge">1</span>
+              <h3>Choose Poster Type</h3>
+            </div>
+            <div class="poster-type-grid">
+              <button class="type-card active" data-type="topper" onclick="selectPosterType('topper', this)">
+                <span class="type-icon">🏆</span>
+                <span class="type-label">Achievement</span>
+              </button>
+              <button class="type-card" data-type="event" onclick="selectPosterType('event', this)">
+                <span class="type-icon">📅</span>
+                <span class="type-label">Event</span>
+              </button>
+              <button class="type-card" data-type="birthday" onclick="selectPosterType('birthday', this)">
+                <span class="type-icon">🎂</span>
+                <span class="type-label">Birthday</span>
+              </button>
+              <button class="type-card" data-type="wedding" onclick="selectPosterType('wedding', this)">
+                <span class="type-icon">💍</span>
+                <span class="type-label">Wedding</span>
+              </button>
+              <button class="type-card" data-type="sports" onclick="selectPosterType('sports', this)">
+                <span class="type-icon">🏅</span>
+                <span class="type-label">Sports</span>
+              </button>
+              <button class="type-card" data-type="quote" onclick="selectPosterType('quote', this)">
+                <span class="type-icon">💬</span>
+                <span class="type-label">Quote</span>
+              </button>
+              <button class="type-card" data-type="corporate" onclick="selectPosterType('corporate', this)">
+                <span class="type-icon">💼</span>
+                <span class="type-label">Corporate</span>
+              </button>
+              <button class="type-card" data-type="custom" onclick="selectPosterType('custom', this)">
+                <span class="type-icon">🎨</span>
+                <span class="type-label">Custom</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 2: THEME -->
+          <div class="panel-section">
+            <div class="section-header">
+              <span class="step-badge">2</span>
+              <h3>Select Theme</h3>
+            </div>
+            <div class="theme-grid" id="themeGrid"></div>
+          </div>
+
+          <!-- STEP 3: SIZE -->
+          <div class="panel-section">
+            <div class="section-header">
+              <span class="step-badge">3</span>
+              <h3>Poster Size</h3>
+            </div>
+            <div class="size-grid">
+              <button class="size-card active" data-size="a4" onclick="selectSize('a4', this)">
+                <span class="size-icon">📄</span>
+                <span class="size-name">A4</span>
+                <span class="size-dim">794×1123</span>
+              </button>
+              <button class="size-card" data-size="square" onclick="selectSize('square', this)">
+                <span class="size-icon">⬛</span>
+                <span class="size-name">Square</span>
+                <span class="size-dim">800×800</span>
+              </button>
+              <button class="size-card" data-size="landscape" onclick="selectSize('landscape', this)">
+                <span class="size-icon">🖼️</span>
+                <span class="size-name">Landscape</span>
+                <span class="size-dim">1200×675</span>
+              </button>
+              <button class="size-card" data-size="story" onclick="selectSize('story', this)">
+                <span class="size-icon">📱</span>
+                <span class="size-name">Story</span>
+                <span class="size-dim">1080×1920</span>
+              </button>
+              <button class="size-card" data-size="banner" onclick="selectSize('banner', this)">
+                <span class="size-icon">🏳️</span>
+                <span class="size-name">Banner</span>
+                <span class="size-dim">1500×500</span>
+              </button>
+              <button class="size-card" data-size="letter" onclick="selectSize('letter', this)">
+                <span class="size-icon">📃</span>
+                <span class="size-name">US Letter</span>
+                <span class="size-dim">816×1056</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 4: CONTENT FIELDS -->
+          <div class="panel-section">
+            <div class="section-header">
+              <span class="step-badge">4</span>
+              <h3>Poster Content</h3>
+            </div>
+            <div id="contentFields"></div>
+          </div>
+
+          <!-- STEP 5: IMAGE UPLOAD -->
+          <div class="panel-section">
+            <div class="section-header">
+              <span class="step-badge">5</span>
+              <h3>Upload Image</h3>
+            </div>
+            <div class="upload-zone" id="uploadZone"
+                onclick="document.getElementById('imageInput').click()"
+                ondragover="dragOver(event)" ondrop="dropImage(event)">
+              <input type="file" id="imageInput" accept="image/*" style="display:none"
+                  onchange="handleImageUpload(event)" />
+              <div id="uploadPlaceholder">
+                <span class="upload-icon">📷</span>
+                <p>Click or drag & drop image here</p>
+                <span class="upload-hint">PNG, JPG, GIF, WEBP supported</span>
+              </div>
+              <img id="uploadedImagePreview" style="display:none; max-width:100%; max-height:120px; border-radius:8px; object-fit:cover;" />
+            </div>
+            <div class="image-controls" id="imageControls" style="display:none">
+              <!-- Shape Selector -->
+              <label class="ctrl-label">Image Shape</label>
+              <div class="img-shape-grid">
+                <button class="shape-btn active" data-shape="circle" onclick="setImageShape('circle', this)" title="Circle">
+                  <svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="11" fill="currentColor" opacity="0.8"/></svg>
+                  <span>Circle</span>
+                </button>
+                <button class="shape-btn" data-shape="square" onclick="setImageShape('square', this)" title="Square">
+                  <svg width="28" height="28" viewBox="0 0 28 28"><rect x="3" y="3" width="22" height="22" rx="4" fill="currentColor" opacity="0.8"/></svg>
+                  <span>Square</span>
+                </button>
+                <button class="shape-btn" data-shape="rect-land" onclick="setImageShape('rect-land', this)" title="Rectangle Landscape">
+                  <svg width="28" height="28" viewBox="0 0 28 28"><rect x="2" y="7" width="24" height="14" rx="3" fill="currentColor" opacity="0.8"/></svg>
+                  <span>Landscape</span>
+                </button>
+                <button class="shape-btn" data-shape="rect-port" onclick="setImageShape('rect-port', this)" title="Rectangle Portrait">
+                  <svg width="28" height="28" viewBox="0 0 28 28"><rect x="7" y="2" width="14" height="24" rx="3" fill="currentColor" opacity="0.8"/></svg>
+                  <span>Portrait</span>
+                </button>
+              </div>
+
+              <!-- Image Filter -->
+              <div class="ctrl-row">
+                <label class="ctrl-label">Image Filter</label>
+                <select id="imageFilter" onchange="setImageFilter(this.value)">
+                  <option value="none">None – Original</option>
+                  <option value="grayscale(100%)">Grayscale</option>
+                  <option value="sepia(80%)">Sepia</option>
+                  <option value="brightness(1.15) saturate(1.3)">Vivid</option>
+                  <option value="hue-rotate(180deg) brightness(0.9)">Cool</option>
+                  <option value="sepia(40%) saturate(1.8) hue-rotate(340deg)">Warm</option>
+                  <option value="contrast(1.4) brightness(0.85)">Dramatic</option>
+                  <option value="brightness(1.2) saturate(0.5)">Faded</option>
+                </select>
+              </div>
+
+              <!-- Image Border -->
+              <div class="ctrl-row" style="flex-direction:row; align-items:center; gap:8px;">
+                <label class="ctrl-label" style="margin:0">Image Border</label>
+                <input type="checkbox" id="imageBorder" checked onchange="setImageBorder(this.checked)" style="accent-color:var(--accent); width:16px; height:16px;" />
+                <span style="font-size:11px; color:var(--text-muted)">White glow border</span>
+              </div>
+
+              <!-- Size Slider -->
+              <label class="ctrl-label">Image Size: <span id="imageSizeVal">100px</span></label>
+              <input type="range" id="imageSize" min="40" max="280" value="100" oninput="updateImageSize(this.value)" />
+
+              <!-- Position Buttons -->
+              <label class="ctrl-label">Position</label>
+              <div class="img-position-btns">
+                <button onclick="setImagePosition('top-left')" title="Top Left">↖</button>
+                <button onclick="setImagePosition('top-center')" title="Top Center">⬆</button>
+                <button onclick="setImagePosition('top-right')" title="Top Right">↗</button>
+                <button onclick="setImagePosition('center')" title="Center (Inline)">⊕</button>
+                <button onclick="setImagePosition('bottom-left')" title="Bottom Left">↙</button>
+                <button onclick="setImagePosition('bottom-center')" title="Bottom Center">⬇</button>
+                <button onclick="setImagePosition('bottom-right')" title="Bottom Right">↘</button>
+              </div>
+              <button class="btn-remove-img" onclick="removeImage()">🗑 Remove Image</button>
+            </div>
+          </div>
+
+          <!-- STEP 6: TEXT FORMATTING -->
+          <div class="panel-section">
+            <div class="section-header">
+              <span class="step-badge">6</span>
+              <h3>Text Formatting</h3>
+            </div>
+            <div class="format-group">
+              <label>Font Family</label>
+              <select id="fontFamily" onchange="applyFormatting()">
+                <option value="Outfit">Outfit (Modern)</option>
+                <option value="Playfair Display">Playfair Display (Elegant)</option>
+                <option value="Poppins">Poppins (Clean)</option>
+                <option value="Raleway">Raleway (Stylish)</option>
+                <option value="Montserrat">Montserrat (Bold)</option>
+                <option value="DM Serif Display">DM Serif Display</option>
+                <option value="Bebas Neue">Bebas Neue (Impact)</option>
+                <option value="Space Mono">Space Mono (Tech)</option>
+                <option value="Cormorant Garamond">Cormorant Garamond (Classic)</option>
+                <option value="Georgia">Georgia (Serif)</option>
+              </select>
+            </div>
+            <div class="format-group">
+              <label>Heading Color</label>
+              <div class="color-row">
+                <input type="color" id="headingColor" value="#ffffff" oninput="applyFormatting()" />
+                <div class="color-presets">
+                  <span class="cp" style="background:#ffffff" onclick="setColor('headingColor','#ffffff')"></span>
+                  <span class="cp" style="background:#FFD700" onclick="setColor('headingColor','#FFD700')"></span>
+                  <span class="cp" style="background:#FF6B6B" onclick="setColor('headingColor','#FF6B6B')"></span>
+                  <span class="cp" style="background:#4ECDC4" onclick="setColor('headingColor','#4ECDC4')"></span>
+                  <span class="cp" style="background:#A29BFE" onclick="setColor('headingColor','#A29BFE')"></span>
+                  <span class="cp" style="background:#FFA07A" onclick="setColor('headingColor','#FFA07A')"></span>
+                  <span class="cp" style="background:#000000" onclick="setColor('headingColor','#000000')"></span>
+                </div>
+              </div>
+            </div>
+            <div class="format-group">
+              <label>Body Text Color</label>
+              <div class="color-row">
+                <input type="color" id="bodyColor" value="#ffffff" oninput="applyFormatting()" />
+                <div class="color-presets">
+                  <span class="cp" style="background:#ffffff" onclick="setColor('bodyColor','#ffffff')"></span>
+                  <span class="cp" style="background:#f0f0f0" onclick="setColor('bodyColor','#f0f0f0')"></span>
+                  <span class="cp" style="background:#FFD700" onclick="setColor('bodyColor','#FFD700')"></span>
+                  <span class="cp" style="background:#000000" onclick="setColor('bodyColor','#000000')"></span>
+                  <span class="cp" style="background:#AEFFD8" onclick="setColor('bodyColor','#AEFFD8')"></span>
+                  <span class="cp" style="background:#FF6B6B" onclick="setColor('bodyColor','#FF6B6B')"></span>
+                  <span class="cp" style="background:#87CEEB" onclick="setColor('bodyColor','#87CEEB')"></span>
+                </div>
+              </div>
+            </div>
+            <div class="format-row">
+              <div class="format-group half">
+                <label>Heading Size</label>
+                <input type="range" id="headingSize" min="14" max="72" value="36"
+                    oninput="applyFormatting(); document.getElementById('headingSizeVal').textContent=this.value+'px'" />
+                <span id="headingSizeVal">36px</span>
+              </div>
+              <div class="format-group half">
+                <label>Body Size</label>
+                <input type="range" id="bodySize" min="10" max="36" value="16"
+                    oninput="applyFormatting(); document.getElementById('bodySizeVal').textContent=this.value+'px'" />
+                <span id="bodySizeVal">16px</span>
+              </div>
+            </div>
+            <div class="format-group">
+              <label>Text Alignment</label>
+              <div class="align-btns">
+                <button class="align-btn active" id="alignLeft" onclick="setAlign('left', this)">☰</button>
+                <button class="align-btn" id="alignCenter" onclick="setAlign('center', this)">≡</button>
+                <button class="align-btn" id="alignRight" onclick="setAlign('right', this)">☰</button>
+              </div>
+            </div>
+            <div class="format-group">
+              <label>Text Shadow</label>
+              <input type="checkbox" id="textShadow" onchange="applyFormatting()" checked />
+              <span style="font-size:12px;color:var(--text-muted)">Enable glow/shadow effect</span>
+            </div>
+          </div>
+
+          <!-- STEP 7: LAYOUT & BACKGROUND -->
+          <div class="panel-section">
+            <div class="section-header">
+              <span class="step-badge">7</span>
+              <h3>Layout & Background</h3>
+            </div>
+            <div class="layout-grid" id="layoutGrid">
+              <button class="layout-card active" data-layout="centered" onclick="selectLayout('centered', this)">
+                <div class="layout-preview centered-prev"></div>
+                <span>Centered</span>
+              </button>
+              <button class="layout-card" data-layout="left-aligned" onclick="selectLayout('left-aligned', this)">
+                <div class="layout-preview left-prev"></div>
+                <span>Left Sidebar</span>
+              </button>
+              <button class="layout-card" data-layout="top-banner" onclick="selectLayout('top-banner', this)">
+                <div class="layout-preview top-prev"></div>
+                <span>Top Banner</span>
+              </button>
+              <button class="layout-card" data-layout="split" onclick="selectLayout('split', this)">
+                <div class="layout-preview split-prev"></div>
+                <span>Split</span>
+              </button>
+            </div>
+
+            <!-- Background Opacity -->
+            <div class="format-group" style="margin-top:12px">
+              <label>Background Opacity</label>
+              <input type="range" id="bgOpacity" min="0" max="100" value="85"
+                  oninput="applyFormatting(); document.getElementById('bgOpVal').textContent=this.value+'%'" />
+              <span id="bgOpVal">85%</span>
+            </div>
+
+            <!-- BG Color -->
+            <div class="format-group">
+              <label>BG Overlay Color</label>
+              <div class="color-row">
+                <input type="color" id="bgOverlayColor" value="#000000" oninput="applyFormatting()" />
+                <span style="font-size:11px;color:var(--text-muted)">Blended with theme</span>
+              </div>
+            </div>
+
+            <!-- BG Pattern -->
+            <div class="format-group">
+              <label>Background Pattern</label>
+              <div class="pattern-grid" id="patternGrid">
+                <button class="pattern-btn active" data-pattern="none" onclick="selectPattern('none', this)">
+                  <div class="pattern-prev" style="background:#252849;"></div>
+                  <span>None</span>
+                </button>
+                <button class="pattern-btn" data-pattern="dots" onclick="selectPattern('dots', this)">
+                  <div class="pattern-prev pat-dots"></div>
+                  <span>Dots</span>
+                </button>
+                <button class="pattern-btn" data-pattern="grid" onclick="selectPattern('grid', this)">
+                  <div class="pattern-prev pat-grid"></div>
+                  <span>Grid</span>
+                </button>
+                <button class="pattern-btn" data-pattern="diagonal" onclick="selectPattern('diagonal', this)">
+                  <div class="pattern-prev pat-diag"></div>
+                  <span>Lines</span>
+                </button>
+                <button class="pattern-btn" data-pattern="hexagon" onclick="selectPattern('hexagon', this)">
+                  <div class="pattern-prev pat-hex"></div>
+                  <span>Hex</span>
+                </button>
+                <button class="pattern-btn" data-pattern="waves" onclick="selectPattern('waves', this)">
+                  <div class="pattern-prev pat-wave"></div>
+                  <span>Waves</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- BG Image Upload -->
+            <div class="format-group">
+              <label>Custom BG Image</label>
+              <div class="bg-img-upload" onclick="document.getElementById('bgImageInput').click()">
+                <input type="file" id="bgImageInput" accept="image/*" style="display:none" onchange="handleBgImageUpload(event)" />
+                <span id="bgImgStatus">📁 Click to upload background image</span>
+              </div>
+              <button class="btn-remove-img" id="removeBgImgBtn" onclick="removeBgImage()" style="display:none; margin-top:6px;">✕ Remove BG Image</button>
+            </div>
+
+            <!-- Decorative Elements -->
+            <div class="format-group">
+              <label>Decorative Elements</label>
+              <div class="deco-btns">
+                <button class="deco-btn active" id="decoStars" onclick="toggleDeco('stars', this)">⭐ Stars</button>
+                <button class="deco-btn" id="decoBorder" onclick="toggleDeco('border', this)">🟦 Border</button>
+                <button class="deco-btn" id="decoConfetti" onclick="toggleDeco('confetti', this)">🎊 Confetti</button>
+                <button class="deco-btn" id="decoRibbon" onclick="toggleDeco('ribbon', this)">🎀 Ribbon</button>
+                <button class="deco-btn" id="decoSparkles" onclick="toggleDeco('sparkles', this)">✨ Glow</button>
+                <button class="deco-btn" id="decoCornerDeco" onclick="toggleDeco('cornerDeco', this)">🔷 Corners</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 8: WATERMARK & QR -->
+          <div class="panel-section">
+            <div class="section-header">
+              <span class="step-badge">8</span>
+              <h3>Extras</h3>
+            </div>
+            <!-- Watermark -->
+            <div class="format-group">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <input type="checkbox" id="watermarkEnabled" onchange="toggleWatermark(this.checked)" style="accent-color:var(--accent); width:15px; height:15px;" />
+                <label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Watermark Text</label>
+              </div>
+              <input type="text" id="watermarkText" placeholder="e.g. © YourBrand 2025" oninput="updateWatermark(this.value)" disabled
+                style="background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:8px 12px; font-size:13px; width:100%; outline:none;" />
+            </div>
+            <!-- QR Code (visible for event type) -->
+            <div id="qrSection">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <input type="checkbox" id="qrEnabled" onchange="toggleQR(this.checked)" style="accent-color:var(--accent); width:15px; height:15px;" />
+                <label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Add QR Code</label>
+              </div>
+              <input type="text" id="qrText" placeholder="URL or text for QR code" oninput="updateQRText(this.value)" disabled
+                style="background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:8px 12px; font-size:13px; width:100%; outline:none;" />
+            </div>
+          </div>
+
+          <!-- STEP 9: GENERATE -->
+          <div class="panel-section">
+            <button class="btn-generate" onclick="generatePoster()">
+              <span class="btn-gen-icon">✦</span>
+              Generate Poster
+            </button>
+            <button class="btn-reset" onclick="resetPoster()">↺ Reset to Default</button>
+            <button class="btn-save-template" onclick="saveAsTemplate()">📐 Save as Template</button>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- RIGHT PANEL: Canvas Preview -->
+      <div class="canvas-area">
+        <div class="canvas-toolbar">
+          <span class="canvas-label">✦ Live Preview</span>
+          <div class="canvas-tools">
+            <button class="tool-btn" onclick="undoHistory()" title="Undo">↩ Undo</button>
+            <button class="tool-btn" onclick="redoHistory()" title="Redo">↪ Redo</button>
+            <div class="tool-separator"></div>
+            <button class="tool-btn" onclick="zoomOut()" title="Zoom Out">−</button>
+            <span id="zoomLevel">70%</span>
+            <button class="tool-btn" onclick="zoomIn()" title="Zoom In">+</button>
+            <button class="tool-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+          </div>
+        </div>
+        <div class="canvas-wrapper" id="canvasWrapper">
+          <div class="poster-canvas" id="posterCanvas">
+            <div class="poster-bg-layer" id="posterBg"></div>
+            <div class="poster-pattern-layer" id="posterPattern"></div>
+            <div class="poster-deco-layer" id="posterDeco"></div>
+            <div class="poster-img-layer" id="posterImgLayer"></div>
+            <div class="poster-content-layer" id="posterContent"></div>
+            <div class="poster-watermark-layer" id="posterWatermark"></div>
+            <div class="poster-qr-layer" id="posterQR"></div>
+          </div>
+        </div>
+        <div class="canvas-actions">
+          <button class="btn-download-png" onclick="downloadPoster('png')">⬇ PNG</button>
+          <button class="btn-download-jpg" onclick="downloadPoster('jpg')">⬇ JPG</button>
+          <button class="btn-download-pdf" onclick="downloadAsPDF()">⬇ PDF</button>
+          <button class="btn-share" onclick="copyPosterToClipboard()">📋 Copy</button>
+          <button class="btn-save-gallery" onclick="saveToGalleryManual()">🖼 Save to Gallery</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======== GALLERY TAB ======== -->
+  <section id="tab-gallery" class="tab-section">
+    <div class="gallery-container">
+      <div class="gallery-header">
+        <div>
+          <h2>🖼️ Saved Posters</h2>
+          <p>Your generated posters appear here</p>
+        </div>
+        <div class="gallery-filter-bar">
+          <button class="gfilter-btn active" data-filter="all" onclick="setGalleryFilter('all', this)">All</button>
+          <button class="gfilter-btn" data-filter="topper" onclick="setGalleryFilter('topper', this)">🏆 Achievement</button>
+          <button class="gfilter-btn" data-filter="event" onclick="setGalleryFilter('event', this)">📅 Event</button>
+          <button class="gfilter-btn" data-filter="birthday" onclick="setGalleryFilter('birthday', this)">🎂 Birthday</button>
+          <button class="gfilter-btn" data-filter="wedding" onclick="setGalleryFilter('wedding', this)">💍 Wedding</button>
+          <button class="gfilter-btn" data-filter="sports" onclick="setGalleryFilter('sports', this)">🏅 Sports</button>
+          <button class="gfilter-btn" data-filter="quote" onclick="setGalleryFilter('quote', this)">💬 Quote</button>
+          <button class="gfilter-btn" data-filter="corporate" onclick="setGalleryFilter('corporate', this)">💼 Corporate</button>
+          <button class="gfilter-btn" data-filter="custom" onclick="setGalleryFilter('custom', this)">🎨 Custom</button>
+        </div>
+      </div>
+      <div class="gallery-grid" id="galleryGrid">
+        <div class="gallery-empty">
+          <span>✦</span>
+          <p>No saved posters yet.<br/>Generate and save your first poster!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== TEMPLATES TAB ======== -->
+  <section id="tab-templates" class="tab-section">
+    <div class="gallery-container">
+      <div class="gallery-header">
+        <div>
+          <h2>📐 Saved Templates</h2>
+          <p>Load a saved configuration and start editing instantly</p>
+        </div>
+        <button class="btn-generate" style="min-width:160px;" onclick="saveAsTemplate()">+ Save Current as Template</button>
+      </div>
+      <div class="gallery-grid" id="templateGrid">
+        <div class="gallery-empty">
+          <span>📐</span>
+          <p>No templates saved yet.<br/>Save your poster settings as a reusable template!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== LOADING ===== -->
+<div class="loading-overlay" id="loadingOverlay" style="display:none">
+  <div class="loading-spinner">
+    <div class="spinner-ring"></div>
+    <p id="loadingMsg">Generating your poster...</p>
+  </div>
+</div>
+
+<!-- QR code hidden canvas -->
+<canvas id="qrCanvas" style="display:none"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
